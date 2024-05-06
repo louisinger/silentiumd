@@ -1,4 +1,4 @@
-# Silentium
+# Silentiumd
 
 Silentium minimizes bandwith requirements of Silent Payment [(BIP352)](https://github.com/bitcoin/bips/pull/1458) wallets.
 
