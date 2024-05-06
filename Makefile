@@ -17,4 +17,4 @@ build:
 
 build-all:
 	@echo "Building all..."
-	@bash ./scripts/build-all.sh
+	@bash ./scripts/build_all.sh
