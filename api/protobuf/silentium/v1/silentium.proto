@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package silentium.v1;
+
+import "google/api/annotations.proto";
+
+service SilentiumService {
+    rpc GetBlockScalars(GetBlockScalarsRequest) returns (GetBlockScalarsResponse) {
+        option (google.api.http) = {
+            get: "/v1/block/{block_id}/scalars"
+        };
+    }   
+    rpc GetBlockFilter(GetBlockFilterRequest) returns (GetBlockFilterResponse) {
+        option (google.api.http) = {
+            get: "/v1/block/{block_id}/filter"
+        };
+    }
+    rpc GetChainTipHeight(GetChainTipHeightRequest) returns (GetChainTipHeightResponse) {
+        option (google.api.http) = {
+            get: "/v1/chain/tip"
+        };
+    }
+}
+
+message GetBlockFilterRequest {
+    uint32 block_id = 1;
+}
+
+message GetBlockFilterResponse {
+    string blockhash = 1;
+    string filter = 2; 
+}
+
+message GetBlockScalarsRequest {
+    uint32 block_id = 1;
+}
+
+message GetBlockScalarsResponse {
+    repeated string scalars = 1;
+}
+
+message GetChainTipHeightRequest {
+    uint32 block_id = 1;
+}
+
+message GetChainTipHeightResponse {
+    uint32 height = 1;
+}
