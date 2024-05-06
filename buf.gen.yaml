@@ -2,7 +2,7 @@ version: v1
 managed:
   enabled: true
   go_package_prefix:
-    default: github.com/louisinger/echemythosd/api/protobuf/gen
+    default: github.com/louisinger/silentiumd/api/protobuf/gen
     except:
       - buf.build/googleapis/googleapis
 plugins:

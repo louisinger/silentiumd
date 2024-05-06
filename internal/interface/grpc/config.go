@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/louisinger/echemythosd/internal/application"
+	"github.com/louisinger/silentiumd/internal/application"
 )
 
 type Config struct {

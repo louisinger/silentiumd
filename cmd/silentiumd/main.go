@@ -6,10 +6,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/louisinger/echemythosd/internal/application"
-	"github.com/louisinger/echemythosd/internal/config"
-	badgerdb "github.com/louisinger/echemythosd/internal/infrastructure/db/badger"
-	grpcservice "github.com/louisinger/echemythosd/internal/interface/grpc"
+	"github.com/louisinger/silentiumd/internal/application"
+	"github.com/louisinger/silentiumd/internal/config"
+	badgerdb "github.com/louisinger/silentiumd/internal/infrastructure/db/badger"
+	grpcservice "github.com/louisinger/silentiumd/internal/interface/grpc"
 	"github.com/sirupsen/logrus"
 )
 

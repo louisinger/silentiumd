@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	silentiumv1 "github.com/louisinger/echemythosd/api/protobuf/gen/silentium/v1"
-	"github.com/louisinger/echemythosd/internal/interface/grpc/handlers"
-	"github.com/louisinger/echemythosd/internal/interface/grpc/interceptors"
+	silentiumv1 "github.com/louisinger/silentiumd/api/protobuf/gen/silentium/v1"
+	"github.com/louisinger/silentiumd/internal/interface/grpc/handlers"
+	"github.com/louisinger/silentiumd/internal/interface/grpc/interceptors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"

@@ -6,8 +6,8 @@ import (
 
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/louisinger/echemythosd/internal/infrastructure/jsonrpc"
-	"github.com/louisinger/echemythosd/internal/ports"
+	"github.com/louisinger/silentiumd/internal/infrastructure/jsonrpc"
+	"github.com/louisinger/silentiumd/internal/ports"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -27,7 +27,7 @@ const (
 
 var (
 	defaultLogLevel    = 4 // logrus.InfoLevel
-	defaultDatadir     = btcutil.AppDataDir("echemythosd", false)
+	defaultDatadir     = btcutil.AppDataDir("silentiumd", false)
 	defaultNetwork     = "mainnet"
 	defaultStartHeight = int32(0)
 	defaultRpcHost     = "localhost:8332"
@@ -49,7 +49,7 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
-	viper.SetEnvPrefix("ECHEMYTHOS")
+	viper.SetEnvPrefix("silentium")
 	viper.AutomaticEnv()
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")

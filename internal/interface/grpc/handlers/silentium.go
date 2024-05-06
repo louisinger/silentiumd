@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/hex"
 
-	silentiumv1 "github.com/louisinger/echemythosd/api/protobuf/gen/silentium/v1"
-	"github.com/louisinger/echemythosd/internal/application"
+	silentiumv1 "github.com/louisinger/silentiumd/api/protobuf/gen/silentium/v1"
+	"github.com/louisinger/silentiumd/internal/application"
 )
 
 type handler struct {

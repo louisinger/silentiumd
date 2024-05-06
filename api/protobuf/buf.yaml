@@ -1,5 +1,5 @@
 version: v1
-name: buf.build/louisinger/echemythos
+name: buf.build/louisinger/silentium
 deps:
   - buf.build/googleapis/googleapis
 breaking:

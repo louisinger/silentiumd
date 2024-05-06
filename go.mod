@@ -1,4 +1,4 @@
-module github.com/louisinger/echemythosd
+module github.com/louisinger/silentiumd
 
 go 1.21.0
 

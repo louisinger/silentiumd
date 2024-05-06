@@ -15,7 +15,7 @@ import (
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
-	"github.com/louisinger/echemythosd/internal/domain"
+	"github.com/louisinger/silentiumd/internal/domain"
 	"github.com/stretchr/testify/require"
 )
 

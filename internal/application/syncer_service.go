@@ -8,8 +8,8 @@ import (
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
-	"github.com/louisinger/echemythosd/internal/domain"
-	"github.com/louisinger/echemythosd/internal/ports"
+	"github.com/louisinger/silentiumd/internal/domain"
+	"github.com/louisinger/silentiumd/internal/ports"
 	"github.com/sirupsen/logrus"
 )
 

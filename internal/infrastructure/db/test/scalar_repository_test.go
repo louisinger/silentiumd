@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/louisinger/echemythosd/internal/domain"
-	badgerdb "github.com/louisinger/echemythosd/internal/infrastructure/db/badger"
-	"github.com/louisinger/echemythosd/internal/ports"
+	"github.com/louisinger/silentiumd/internal/domain"
+	badgerdb "github.com/louisinger/silentiumd/internal/infrastructure/db/badger"
+	"github.com/louisinger/silentiumd/internal/ports"
 	"github.com/stretchr/testify/require"
 )
 

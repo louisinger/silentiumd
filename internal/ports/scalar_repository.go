@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/louisinger/echemythosd/internal/domain"
+	"github.com/louisinger/silentiumd/internal/domain"
 )
 
 type ErrScalarNotFound struct {

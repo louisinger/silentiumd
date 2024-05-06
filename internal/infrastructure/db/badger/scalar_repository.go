@@ -6,8 +6,8 @@ import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/dgraph-io/badger/v4"
 	"github.com/dgraph-io/badger/v4/options"
-	"github.com/louisinger/echemythosd/internal/domain"
-	"github.com/louisinger/echemythosd/internal/ports"
+	"github.com/louisinger/silentiumd/internal/domain"
+	"github.com/louisinger/silentiumd/internal/ports"
 	"github.com/sirupsen/logrus"
 	"github.com/timshannon/badgerhold/v4"
 )

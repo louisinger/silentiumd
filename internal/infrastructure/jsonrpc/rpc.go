@@ -10,7 +10,7 @@ import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/btcsuite/btcd/wire"
-	"github.com/louisinger/echemythosd/internal/ports"
+	"github.com/louisinger/silentiumd/internal/ports"
 	"github.com/sirupsen/logrus"
 )
 

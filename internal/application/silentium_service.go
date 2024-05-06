@@ -1,8 +1,8 @@
 package application
 
 import (
-	"github.com/louisinger/echemythosd/internal/domain"
-	"github.com/louisinger/echemythosd/internal/ports"
+	"github.com/louisinger/silentiumd/internal/domain"
+	"github.com/louisinger/silentiumd/internal/ports"
 )
 
 type SilentiumService interface {
