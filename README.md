@@ -4,6 +4,15 @@ Silentium minimizes bandwith requirements of Silent Payment [(BIP352)](https://g
 
 ## Silent payment "scalar"
 
+```mermaid
+xychart-beta
+    title "fetch blocks vs. fetch BIP352 scalars"
+    x-axis [842538, 842539, 842540, 842541, 842542]
+    y-axis "bytes to fetch" 
+    line [ 20526, 45210, 74151, 119229, 161898 ]
+    line [ 1810000, 3500000, 5150000, 6860000, 9230000 ]
+```
+
 BIP352 defines silent payments as key-spend taproot script using a tweaked key.
 ```
 silentpay_tapkey = key + tweak
