@@ -71,7 +71,7 @@ func main() {
 	logrus.Info("grpc service OK")
 
 	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)
+	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	<-sigChan
 
 	if err := service.Stop(); err != nil {

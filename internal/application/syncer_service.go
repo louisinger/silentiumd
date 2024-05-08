@@ -6,11 +6,16 @@ import (
 
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/louisinger/silentiumd/internal/domain"
 	"github.com/louisinger/silentiumd/internal/ports"
 	"github.com/sirupsen/logrus"
+)
+
+var zeroHash, _ = chainhash.NewHashFromStr(
+	"0000000000000000000000000000000000000000000000000000000000000000",
 )
 
 // SyncerService is running in background to sync the chain
@@ -27,8 +32,12 @@ type syncer struct {
 
 	computeScalarsCh chan *btcutil.Block
 	updateUnspentsCh chan *btcutil.Block
-	stopSignal       chan struct{}
-	startBlock       int32
+
+	stopUpdateUnspents      chan struct{}
+	stopComputeBlockScalars chan struct{}
+	stopSyncBlocks          chan struct{}
+	stopBlockWatcher        chan struct{}
+	startBlock              int32
 }
 
 func NewSyncerService(
@@ -59,20 +68,25 @@ func NewSyncerService(
 
 	logrus.Infof("start block: %d", start)
 
-	return &syncer{store, chainsrc, nil, nil, nil, int32(start)}, nil
+	return &syncer{store, chainsrc, nil, nil, nil, nil, nil, nil, int32(start)}, nil
 }
 
 func (s *syncer) Start() error {
 	s.computeScalarsCh = make(chan *btcutil.Block)
 	s.updateUnspentsCh = make(chan *btcutil.Block)
-	s.stopSignal = make(chan struct{})
+
+	s.stopBlockWatcher = make(chan struct{}, 1)
+	s.stopSyncBlocks = make(chan struct{}, 1)
+	s.stopUpdateUnspents = make(chan struct{}, 1)
+	s.stopComputeBlockScalars = make(chan struct{}, 1)
 
 	go func() {
 		for {
 			select {
 			case block := <-s.computeScalarsCh:
 				s.computeBlockScalars(block)
-			case <-s.stopSignal:
+			case <-s.stopComputeBlockScalars:
+				logrus.Info("stop compute block scalars")
 				return
 			}
 		}
@@ -83,7 +97,8 @@ func (s *syncer) Start() error {
 			select {
 			case block := <-s.updateUnspentsCh:
 				s.updateUnspents(block)
-			case <-s.stopSignal:
+			case <-s.stopUpdateUnspents:
+				logrus.Info("stop update unspents")
 				return
 			}
 		}
@@ -98,9 +113,12 @@ func (s *syncer) Start() error {
 }
 
 func (s *syncer) Stop() error {
+	s.stopBlockWatcher <- struct{}{}
+	s.stopSyncBlocks <- struct{}{}
+	s.stopComputeBlockScalars <- struct{}{}
+	s.stopUpdateUnspents <- struct{}{}
+
 	close(s.computeScalarsCh)
-	s.stopSignal <- struct{}{}
-	close(s.stopSignal)
 	return nil
 }
 
@@ -132,7 +150,13 @@ func (s *syncer) syncMissingBlocks() {
 				continue
 			}
 
-			s.computeScalarsCh <- block
+			select {
+			case <-s.stopSyncBlocks:
+				logrus.Info("stop sync blocks")
+				return
+			default:
+				s.computeScalarsCh <- block
+			}
 		}
 	}
 
@@ -146,7 +170,8 @@ func (s *syncer) blockWatcher() {
 
 	for {
 		select {
-		case <-s.stopSignal:
+		case <-s.stopBlockWatcher:
+			logrus.Info("stop block watcher")
 			cancel()
 			return
 		case block := <-blocksch:
@@ -235,6 +260,11 @@ func (s *syncer) updateUnspents(block *btcutil.Block) {
 // it means that it must have at least 1 taproot output
 func (s *syncer) isSilentPaymentElligibleTx(tx *btcutil.Tx) bool {
 	for _, txIn := range tx.MsgTx().TxIn {
+		// skip coinbase
+		if txIn.PreviousOutPoint.Hash.IsEqual(zeroHash) {
+			return false
+		}
+
 		if isInscription(txIn.Witness) {
 			return false
 		}
