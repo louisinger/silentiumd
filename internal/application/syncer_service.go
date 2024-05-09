@@ -104,11 +104,8 @@ func (s *syncer) Start() error {
 		}
 	}()
 
-	go func() {
-		s.syncMissingBlocks()
-		s.blockWatcher()
-	}()
-
+	go s.syncMissingBlocks()
+	go s.blockWatcher()
 	return nil
 }
 
