@@ -37,6 +37,7 @@ type syncer struct {
 	stopComputeBlockScalars chan struct{}
 	stopSyncBlocks          chan struct{}
 	stopBlockWatcher        chan struct{}
+	syncTaskDone            chan struct{}
 	startBlock              int32
 }
 
@@ -68,7 +69,7 @@ func NewSyncerService(
 
 	logrus.Infof("start block: %d", start)
 
-	return &syncer{store, chainsrc, nil, nil, nil, nil, nil, nil, int32(start)}, nil
+	return &syncer{store, chainsrc, nil, nil, nil, nil, nil, nil, nil, int32(start)}, nil
 }
 
 func (s *syncer) Start() error {
@@ -104,6 +105,7 @@ func (s *syncer) Start() error {
 		}
 	}()
 
+	s.syncTaskDone = make(chan struct{}, 1)
 	go s.syncMissingBlocks()
 	go s.blockWatcher()
 	return nil
@@ -157,6 +159,7 @@ func (s *syncer) syncMissingBlocks() {
 		}
 	}
 
+	s.syncTaskDone <- struct{}{}
 }
 
 func (s *syncer) blockWatcher() {
@@ -164,6 +167,9 @@ func (s *syncer) blockWatcher() {
 	if err != nil {
 		return
 	}
+
+	<-s.syncTaskDone
+	logrus.Info("sync done")
 
 	for {
 		select {

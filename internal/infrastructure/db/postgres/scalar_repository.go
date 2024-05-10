@@ -8,7 +8,6 @@ import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/louisinger/silentiumd/internal/domain"
 	"github.com/louisinger/silentiumd/internal/ports"
-	"github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
@@ -31,7 +30,6 @@ func New(opts PostreSQLConfig) (ports.ScalarRepository, error) {
 	if _, err := db.NewCreateTable().Model((*TaprootOutputModel)(nil)).IfNotExists().Exec(ctx); err != nil {
 		return nil, err
 	}
-	logrus.Info("taproot_outputs table created")
 
 	if _, err := db.NewCreateTable().Model((*ScalarModel)(nil)).IfNotExists().Exec(ctx); err != nil {
 		return nil, err
