@@ -59,12 +59,6 @@ type Config struct {
 func Load() (*Config, error) {
 	viper.SetEnvPrefix("silentium")
 	viper.AutomaticEnv()
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, err
-	}
 
 	viper.SetDefault(LogLevelKey, defaultLogLevel)
 	viper.SetDefault(BadgerDatadirKey, defaultDatadir)
