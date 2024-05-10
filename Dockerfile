@@ -23,5 +23,7 @@ COPY --from=builder /app/bin/* /app
 
 ENV PATH="/app:${PATH}"
 
+VOLUME /app/data
+
 ENTRYPOINT [ "silentiumd" ]
-    
+
