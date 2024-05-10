@@ -22,7 +22,7 @@ type PostreSQLConfig struct {
 	Dsn string
 }
 
-func NewScalarRepository(opts PostreSQLConfig) (ports.ScalarRepository, error) {
+func New(opts PostreSQLConfig) (ports.ScalarRepository, error) {
 	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(opts.Dsn)))
 	db := bun.NewDB(sqldb, pgdialect.New())
 

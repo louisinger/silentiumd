@@ -8,7 +8,6 @@ import (
 
 	"github.com/louisinger/silentiumd/internal/application"
 	"github.com/louisinger/silentiumd/internal/config"
-	badgerdb "github.com/louisinger/silentiumd/internal/infrastructure/db/badger"
 	grpcservice "github.com/louisinger/silentiumd/internal/interface/grpc"
 	"github.com/sirupsen/logrus"
 )
@@ -28,7 +27,7 @@ func main() {
 
 	logrus.Info("chain source OK")
 
-	scalarsRepository, err := badgerdb.NewScalarRepository(cfg.Datadir, logrus.StandardLogger())
+	scalarsRepository, err := cfg.GetRepository()
 	if err != nil {
 		logrus.Fatal(err)
 	}

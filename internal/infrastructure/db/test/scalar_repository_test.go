@@ -68,6 +68,7 @@ func TestGetScalars(t *testing.T) {
 	for name, repo := range repositories {
 		t.Run(name, func(t *testing.T) {
 			txhash := generateRandomTxHash(t)
+			blockHeight := randomBlockHeight(t)
 			require.NoError(t, repo.Write([]*domain.SilentScalar{
 				{
 					TaprootOutputs: []domain.TaprootOutput{
@@ -75,13 +76,17 @@ func TestGetScalars(t *testing.T) {
 							Index: 0,
 							Spent: false,
 						},
+						{
+							Index: 1,
+							Spent: false,
+						},
 					},
 					Scalar: []byte{0x03},
 					TxHash: txhash,
 				},
-			}, 100))
+			}, blockHeight))
 
-			scalars, err := repo.GetScalars(100)
+			scalars, err := repo.GetScalars(blockHeight)
 			require.NoError(t, err)
 			require.Len(t, scalars, 1)
 			require.Equal(t, hex.EncodeToString([]byte{0x03}), scalars[0])
@@ -89,7 +94,14 @@ func TestGetScalars(t *testing.T) {
 			err = repo.MarkOutpointSpent(txhash, 0)
 			require.NoError(t, err)
 
-			scalars, err = repo.GetScalars(100)
+			scalars, err = repo.GetScalars(blockHeight)
+			require.NoError(t, err)
+			require.Len(t, scalars, 1)
+
+			err = repo.MarkOutpointSpent(txhash, 1)
+			require.NoError(t, err)
+
+			scalars, err = repo.GetScalars(blockHeight)
 			require.NoError(t, err)
 			require.Len(t, scalars, 0)
 		})
@@ -97,10 +109,10 @@ func TestGetScalars(t *testing.T) {
 }
 
 func getRepositories(t *testing.T) map[string]ports.ScalarRepository {
-	badgerrepo, err := badgerdb.NewScalarRepository("", nil)
+	badgerrepo, err := badgerdb.New("", nil)
 	require.NoError(t, err)
 
-	postresrepo, err := postgres.NewScalarRepository(postgres.PostreSQLConfig{Dsn: testDSN})
+	postresrepo, err := postgres.New(postgres.PostreSQLConfig{Dsn: testDSN})
 	require.NoError(t, err)
 
 	return map[string]ports.ScalarRepository{
@@ -117,4 +129,12 @@ func generateRandomTxHash(t *testing.T) *chainhash.Hash {
 	hash, err := chainhash.NewHash(random32bytes)
 	require.NoError(t, err)
 	return hash
+}
+
+func randomBlockHeight(t *testing.T) int32 {
+	random32bytes := make([]byte, 4)
+	_, err := rand.Read(random32bytes)
+	require.NoError(t, err)
+
+	return int32(random32bytes[0])
 }

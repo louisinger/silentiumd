@@ -228,8 +228,10 @@ func (s *syncer) updateUnspents(block *btcutil.Block) {
 		for _, input := range tx.MsgTx().TxIn {
 			err := s.store.MarkOutpointSpent(&input.PreviousOutPoint.Hash, input.PreviousOutPoint.Index)
 			if err != nil {
-				nbOfUpdates++
+				logrus.Debug(err)
+				continue
 			}
+			nbOfUpdates++
 		}
 	}
 	logrus.Infof("[%d] update done (%d updated)", block.Height(), nbOfUpdates)

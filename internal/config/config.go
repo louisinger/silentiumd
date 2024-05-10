@@ -2,10 +2,11 @@ package config
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
+	badgerdb "github.com/louisinger/silentiumd/internal/infrastructure/db/badger"
+	"github.com/louisinger/silentiumd/internal/infrastructure/db/postgres"
 	"github.com/louisinger/silentiumd/internal/infrastructure/jsonrpc"
 	"github.com/louisinger/silentiumd/internal/ports"
 	"github.com/sirupsen/logrus"
@@ -14,7 +15,6 @@ import (
 
 const (
 	LogLevelKey    = "LOG_LEVEL"
-	DatadirKey     = "DATADIR"
 	NetworkKey     = "NETWORK"
 	StartHeightKey = "START_HEIGHT"
 	RpcCookiePath  = "RPC_COOKIE_PATH"
@@ -23,6 +23,11 @@ const (
 	RpcHostKey     = "RPC_HOST"
 	PortKey        = "PORT"
 	NoTLSKey       = "NO_TLS"
+
+	// db
+	DbTypeKey        = "DB_TYPE"
+	BadgerDatadirKey = "BADGER_DATADIR"
+	PostgresDSNKey   = "POSTGRES_DSN"
 )
 
 var (
@@ -36,7 +41,6 @@ var (
 )
 
 type Config struct {
-	Datadir       string
 	StartHeight   int32
 	ChainParams   chaincfg.Params
 	RpcCookiePath string
@@ -46,6 +50,10 @@ type Config struct {
 	LogLevel      logrus.Level
 	Port          uint32
 	NoTLS         bool
+
+	DBType        string
+	BadgerDatadir string
+	PostgresDSN   string
 }
 
 func Load() (*Config, error) {
@@ -59,7 +67,8 @@ func Load() (*Config, error) {
 	}
 
 	viper.SetDefault(LogLevelKey, defaultLogLevel)
-	viper.SetDefault(DatadirKey, defaultDatadir)
+	viper.SetDefault(BadgerDatadirKey, defaultDatadir)
+	viper.SetDefault(DbTypeKey, "badger")
 	viper.SetDefault(StartHeightKey, defaultStartHeight)
 	viper.SetDefault(NetworkKey, defaultNetwork)
 	viper.SetDefault(RpcHostKey, defaultRpcHost)
@@ -73,7 +82,6 @@ func Load() (*Config, error) {
 	}
 
 	cfg := &Config{
-		Datadir:       viper.GetString(DatadirKey),
 		StartHeight:   viper.GetInt32(StartHeightKey),
 		RpcCookiePath: viper.GetString(RpcCookiePath),
 		RpcUser:       viper.GetString(RpcUserKey),
@@ -83,15 +91,14 @@ func Load() (*Config, error) {
 		RpcHost:       viper.GetString(RpcHostKey),
 		Port:          viper.GetUint32(PortKey),
 		NoTLS:         viper.GetBool(NoTLSKey),
+		DBType:        viper.GetString(DbTypeKey),
+		BadgerDatadir: viper.GetString(BadgerDatadirKey),
+		PostgresDSN:   viper.GetString(PostgresDSNKey),
 	}
 
 	logrus.SetLevel(cfg.LogLevel)
 
 	if err := cfg.validate(); err != nil {
-		return nil, err
-	}
-
-	if err := cfg.initDatadir(); err != nil {
 		return nil, err
 	}
 
@@ -107,16 +114,30 @@ func (c *Config) validate() error {
 		logrus.Warn("you're using rpc user and pass, consider using cookie file instead")
 	}
 
+	if c.DBType != "badger" && c.DBType != "postgres" {
+		return fmt.Errorf("unknown db type: %s", c.DBType)
+	}
+
+	if c.DBType == "badger" && c.BadgerDatadir == "" {
+		return fmt.Errorf("badger datadir must be set")
+	}
+
+	if c.DBType == "postgres" && c.PostgresDSN == "" {
+		return fmt.Errorf("postgres dsn must be set")
+	}
+
 	return nil
 }
 
-func (c *Config) initDatadir() error {
-	err := os.Mkdir(c.Datadir, os.ModePerm)
-	if os.IsExist(err) {
-		return nil
+func (c *Config) GetRepository() (ports.ScalarRepository, error) {
+	switch c.DBType {
+	case "badger":
+		return badgerdb.New(c.BadgerDatadir, logrus.StandardLogger())
+	case "postgres":
+		return postgres.New(postgres.PostreSQLConfig{Dsn: c.PostgresDSN})
+	default:
+		return nil, fmt.Errorf("unknown db type: %s", c.DBType)
 	}
-
-	return err
 }
 
 func (c *Config) GetChainsource() (ports.ChainSource, error) {

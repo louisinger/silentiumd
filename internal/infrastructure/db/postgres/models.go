@@ -6,7 +6,7 @@ type ScalarModel struct {
 	bun.BaseModel `bun:"table:scalars,alias:s"`
 
 	TxHash         string                `bun:",pk,unique"`
-	Scalar         string                `bun:",notnull"`
+	Scalar         string                `bun:",notnull,unique"`
 	BlockHeight    int32                 `bun:",notnull"`
 	TaprootOutputs []*TaprootOutputModel `bun:"rel:has-many,join:tx_hash=tx_hash"`
 }
