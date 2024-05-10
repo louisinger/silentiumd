@@ -222,35 +222,17 @@ func (s *syncer) computeBlockScalars(block *btcutil.Block) {
 }
 
 func (s *syncer) updateUnspents(block *btcutil.Block) {
-	var nbOfUpdates, nbOfDelete int
+	var nbOfUpdates int
 
 	for _, tx := range block.Transactions() {
 		for _, input := range tx.MsgTx().TxIn {
-			scalar, err := s.store.GetByTxHash(&input.PreviousOutPoint.Hash)
+			err := s.store.MarkOutpointSpent(&input.PreviousOutPoint.Hash, input.PreviousOutPoint.Index)
 			if err != nil {
-				if _, ok := err.(ports.ErrScalarNotFound); !ok {
-					logrus.Error(err)
-				}
-				continue
+				nbOfUpdates++
 			}
-
-			scalar.MarkOutputSpent(input.PreviousOutPoint.Index)
-
-			if !scalar.HasUnspentTaproot() {
-				if err := s.store.Delete(&input.PreviousOutPoint.Hash); err != nil {
-					logrus.Error(err)
-				}
-				nbOfDelete++
-				continue
-			}
-
-			if err := s.store.Update(scalar); err != nil {
-				logrus.Error(err)
-			}
-			nbOfUpdates++
 		}
 	}
-	logrus.Infof("[%d] update done (%d updated, %d deleted)", block.Height(), nbOfUpdates, nbOfDelete)
+	logrus.Infof("[%d] update done (%d updated)", block.Height(), nbOfUpdates)
 }
 
 // isSilentPaymentElligibleTx checks if a transaction is eligible for silent payments.

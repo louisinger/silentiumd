@@ -1,6 +1,7 @@
 package badgerdb
 
 import (
+	"encoding/hex"
 	"time"
 
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
@@ -24,6 +25,7 @@ func NewScalarRepository(
 	baseDir string,
 	logger badger.Logger,
 ) (ports.ScalarRepository, error) {
+	logrus.Warn("using badgerdb, consider using postgresql for production")
 
 	db, err := createDb(baseDir, logger)
 	if err != nil {
@@ -33,16 +35,47 @@ func NewScalarRepository(
 	return &scalarRepository{db}, nil
 }
 
-func (s *scalarRepository) GetByHeight(height int32) ([]*domain.SilentScalar, error) {
+func (s *scalarRepository) GetScalars(height int32) ([]string, error) {
 	var result blockScalarsDTO
 	if err := s.store.Get(height, &result); err != nil {
 		return nil, err
 	}
 
-	return result.Scalars(), nil
+	scalars := make([]string, 0, len(result.ScalarsData))
+	for _, scalar := range result.ScalarsData {
+		scalars = append(scalars, hex.EncodeToString(scalar.Scalar))
+	}
+
+	return scalars, nil
 }
 
-func (s *scalarRepository) Delete(txHash *chainhash.Hash) error {
+func (s *scalarRepository) MarkOutpointSpent(txHash *chainhash.Hash, index uint32) error {
+	silentScalar, err := s.getByTxHash(txHash)
+	if err != nil {
+		return err
+	}
+
+	atLeastOneUnspent := false
+
+	for i, out := range silentScalar.TaprootOutputs {
+		if out.Index == index {
+			silentScalar.TaprootOutputs[i].Spent = true
+			continue
+		}
+
+		if !out.Spent {
+			atLeastOneUnspent = true
+		}
+	}
+
+	if atLeastOneUnspent {
+		return s.update(silentScalar)
+	}
+
+	return s.delete(txHash)
+}
+
+func (s *scalarRepository) delete(txHash *chainhash.Hash) error {
 	var result blockScalarsDTO
 
 	if err := s.store.FindOne(&result, badgerhold.Where("ScalarsData").HasKey(*txHash)); err != nil {
@@ -58,7 +91,7 @@ func (s *scalarRepository) Delete(txHash *chainhash.Hash) error {
 	return s.store.Update(result.Height, &result)
 }
 
-func (s *scalarRepository) GetByTxHash(txHash *chainhash.Hash) (*domain.SilentScalar, error) {
+func (s *scalarRepository) getByTxHash(txHash *chainhash.Hash) (*domain.SilentScalar, error) {
 	var result blockScalarsDTO
 
 	if err := s.store.FindOne(&result, badgerhold.Where("ScalarsData").HasKey(*txHash)); err != nil {
@@ -114,7 +147,7 @@ func (s *scalarRepository) Write(scalars []*domain.SilentScalar, blockHeight int
 	return nil
 }
 
-func (s *scalarRepository) Update(updated *domain.SilentScalar) error {
+func (s *scalarRepository) update(updated *domain.SilentScalar) error {
 	var result blockScalarsDTO
 
 	if err := s.store.FindOne(&result, badgerhold.Where("ScalarsData").HasKey(*updated.TxHash)); err != nil {

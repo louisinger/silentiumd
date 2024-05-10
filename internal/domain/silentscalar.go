@@ -28,11 +28,11 @@ type TaprootOutput struct {
 }
 
 type SilentScalar struct {
-	TxHash         *chainhash.Hash
-	TaprootOutputs []TaprootOutput
-	Scalar         []byte
+	TxHash *chainhash.Hash
+	Scalar []byte
 
-	TxIn []*wire.TxIn
+	TaprootOutputs []TaprootOutput
+	TxIn           []*wire.TxIn
 }
 
 func NewSilentScalar(

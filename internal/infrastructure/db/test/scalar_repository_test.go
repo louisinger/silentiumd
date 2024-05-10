@@ -2,38 +2,28 @@ package dbtest
 
 import (
 	"crypto/rand"
+	"encoding/hex"
 	"testing"
 
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/louisinger/silentiumd/internal/domain"
 	badgerdb "github.com/louisinger/silentiumd/internal/infrastructure/db/badger"
+	"github.com/louisinger/silentiumd/internal/infrastructure/db/postgres"
 	"github.com/louisinger/silentiumd/internal/ports"
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	testDSN = "postgres://postgres:admin@localhost:5432?sslmode=disable"
 )
 
 func TestGetLatestBlockHeight(t *testing.T) {
 	repositories := getRepositories(t)
 	for name, repo := range repositories {
 		t.Run(name, func(t *testing.T) {
-			require.NoError(t, repo.Write([]*domain.SilentScalar{}, 10000))
-
-			latest, err := repo.GetLatestBlockHeight()
+			initialTip, err := repo.GetLatestBlockHeight()
 			require.NoError(t, err)
-			require.Equal(t, int32(10000), latest)
 
-			require.NoError(t, repo.Write([]*domain.SilentScalar{}, 10001))
-
-			latest, err = repo.GetLatestBlockHeight()
-			require.NoError(t, err)
-			require.Equal(t, int32(10001), latest)
-		})
-	}
-}
-
-func TestGetByHeight(t *testing.T) {
-	repositories := getRepositories(t)
-	for name, repo := range repositories {
-		t.Run(name, func(t *testing.T) {
 			txhash := generateRandomTxHash(t)
 			require.NoError(t, repo.Write([]*domain.SilentScalar{
 				{
@@ -46,142 +36,76 @@ func TestGetByHeight(t *testing.T) {
 					Scalar: []byte{0x01},
 					TxHash: txhash,
 				},
-			}, 10000))
+			}, initialTip+1))
 
-			scalars, err := repo.GetByHeight(10000)
+			latest, err := repo.GetLatestBlockHeight()
+			require.NoError(t, err)
+			require.Equal(t, initialTip+1, latest)
+
+			txhash2 := generateRandomTxHash(t)
+			require.NoError(t, repo.Write([]*domain.SilentScalar{
+				{
+					TaprootOutputs: []domain.TaprootOutput{
+						{
+							Index: 0,
+							Spent: false,
+						},
+					},
+					Scalar: []byte{0x02},
+					TxHash: txhash2,
+				},
+			}, initialTip+2))
+
+			latest, err = repo.GetLatestBlockHeight()
+			require.NoError(t, err)
+			require.Equal(t, initialTip+2, latest)
+		})
+	}
+}
+
+func TestGetScalars(t *testing.T) {
+	repositories := getRepositories(t)
+	for name, repo := range repositories {
+		t.Run(name, func(t *testing.T) {
+			txhash := generateRandomTxHash(t)
+			require.NoError(t, repo.Write([]*domain.SilentScalar{
+				{
+					TaprootOutputs: []domain.TaprootOutput{
+						{
+							Index: 0,
+							Spent: false,
+						},
+					},
+					Scalar: []byte{0x03},
+					TxHash: txhash,
+				},
+			}, 100))
+
+			scalars, err := repo.GetScalars(100)
 			require.NoError(t, err)
 			require.Len(t, scalars, 1)
-			require.Equal(t, []domain.TaprootOutput{
-				{
-					Index: 0,
-					Spent: false,
-				},
-			}, scalars[0].TaprootOutputs)
-			require.Equal(t, []byte{0x01}, scalars[0].Scalar)
-			require.Equal(t, txhash, scalars[0].TxHash)
+			require.Equal(t, hex.EncodeToString([]byte{0x03}), scalars[0])
+
+			err = repo.MarkOutpointSpent(txhash, 0)
+			require.NoError(t, err)
+
+			scalars, err = repo.GetScalars(100)
+			require.NoError(t, err)
+			require.Len(t, scalars, 0)
 		})
 	}
-}
-
-func TestGetByTxHash(t *testing.T) {
-	repositories := getRepositories(t)
-	for name, repo := range repositories {
-		t.Run(name, func(t *testing.T) {
-			txHash := generateRandomTxHash(t)
-
-			require.NoError(t, repo.Write([]*domain.SilentScalar{
-				{
-					TaprootOutputs: []domain.TaprootOutput{
-						{
-							Index: 0,
-							Spent: false,
-						},
-					},
-					Scalar: []byte{0x01},
-					TxHash: txHash,
-				},
-			}, 10000))
-
-			scalar, err := repo.GetByTxHash(txHash)
-			require.NoError(t, err)
-			require.Equal(t, []domain.TaprootOutput{
-				{
-					Index: 0,
-					Spent: false,
-				},
-			}, scalar.TaprootOutputs)
-			require.Equal(t, []byte{0x01}, scalar.Scalar)
-			require.Equal(t, txHash, scalar.TxHash)
-		})
-	}
-}
-
-func TestDelete(t *testing.T) {
-	repositories := getRepositories(t)
-	for name, repo := range repositories {
-		t.Run(name, func(t *testing.T) {
-			txHash := generateRandomTxHash(t)
-
-			require.NoError(t, repo.Write([]*domain.SilentScalar{
-				{
-					TaprootOutputs: []domain.TaprootOutput{
-						{
-							Index: 0,
-							Spent: false,
-						},
-					},
-					Scalar: []byte{0x01},
-					TxHash: txHash,
-				},
-			}, 10000))
-
-			err := repo.Delete(txHash)
-			require.NoError(t, err)
-
-			_, err = repo.GetByTxHash(txHash)
-			require.Error(t, err)
-			require.Equal(t, ports.ErrScalarNotFound{MethodName: "GetByTxHash"}, err)
-		})
-	}
-}
-
-func TestUpdate(t *testing.T) {
-	repositories := getRepositories(t)
-	for name, repo := range repositories {
-		t.Run(name, func(t *testing.T) {
-			txHash := generateRandomTxHash(t)
-
-			require.NoError(t, repo.Write([]*domain.SilentScalar{
-				{
-					TaprootOutputs: []domain.TaprootOutput{
-						{
-							Index: 0,
-							Spent: false,
-						},
-					},
-					Scalar: []byte{0x01},
-					TxHash: txHash,
-				},
-			}, 10000))
-
-			scalar, err := repo.GetByTxHash(txHash)
-			require.NoError(t, err)
-			require.Equal(t, []domain.TaprootOutput{
-				{
-					Index: 0,
-					Spent: false,
-				},
-			}, scalar.TaprootOutputs)
-			require.Equal(t, []byte{0x01}, scalar.Scalar)
-			require.Equal(t, txHash, scalar.TxHash)
-
-			scalar.Scalar = []byte{0x02}
-			scalar.TaprootOutputs[0].Spent = true
-
-			err = repo.Update(scalar)
-			require.NoError(t, err)
-
-			scalar, err = repo.GetByTxHash(txHash)
-			require.NoError(t, err)
-			require.Equal(t, []domain.TaprootOutput{
-				{
-					Index: 0,
-					Spent: true,
-				},
-			}, scalar.TaprootOutputs)
-			require.Equal(t, []byte{0x02}, scalar.Scalar)
-			require.Equal(t, txHash, scalar.TxHash)
-		})
-	}
-
 }
 
 func getRepositories(t *testing.T) map[string]ports.ScalarRepository {
 	badgerrepo, err := badgerdb.NewScalarRepository("", nil)
 	require.NoError(t, err)
 
+	postresrepo, err := postgres.NewScalarRepository(postgres.PostreSQLConfig{Dsn: testDSN})
+	require.NoError(t, err)
+
 	return map[string]ports.ScalarRepository{
-		"badger": badgerrepo,
+		"badger":   badgerrepo,
+		"postgres": postresrepo,
 	}
 }
 

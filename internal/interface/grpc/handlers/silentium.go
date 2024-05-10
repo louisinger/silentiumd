@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"encoding/hex"
 
 	silentiumv1 "github.com/louisinger/silentiumd/api/protobuf/gen/silentium/v1"
 	"github.com/louisinger/silentiumd/internal/application"
@@ -35,13 +34,8 @@ func (h *handler) GetBlockScalars(ctx context.Context, req *silentiumv1.GetBlock
 	}
 
 	res := &silentiumv1.GetBlockScalarsResponse{
-		Scalars: make([]string, len(scalars)),
+		Scalars: scalars,
 	}
-
-	for i, scalar := range scalars {
-		res.Scalars[i] = hex.EncodeToString(scalar.Scalar)
-	}
-
 	return res, nil
 }
 

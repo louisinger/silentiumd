@@ -1,12 +1,11 @@
 package application
 
 import (
-	"github.com/louisinger/silentiumd/internal/domain"
 	"github.com/louisinger/silentiumd/internal/ports"
 )
 
 type SilentiumService interface {
-	GetScalarsByHeight(height uint32) ([]*domain.SilentScalar, error)
+	GetScalarsByHeight(height uint32) ([]string, error)
 	GetBlockFilter(height uint32) (filter string, header string, err error)
 	GetChainTip() (uint32, error)
 }
@@ -29,8 +28,8 @@ func (e *silentium) GetChainTip() (uint32, error) {
 	return uint32(last), nil
 }
 
-func (e *silentium) GetScalarsByHeight(height uint32) ([]*domain.SilentScalar, error) {
-	return e.repo.GetByHeight(int32(height))
+func (e *silentium) GetScalarsByHeight(height uint32) ([]string, error) {
+	return e.repo.GetScalars(int32(height))
 }
 
 func (e *silentium) GetBlockFilter(height uint32) (filter string, blockhash string, err error) {

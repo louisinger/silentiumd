@@ -17,9 +17,7 @@ func (e ErrScalarNotFound) Error() string {
 
 type ScalarRepository interface {
 	GetLatestBlockHeight() (int32, error)
-	GetByHeight(height int32) ([]*domain.SilentScalar, error)
-	GetByTxHash(txHash *chainhash.Hash) (*domain.SilentScalar, error)
+	GetScalars(height int32) ([]string, error)
+	MarkOutpointSpent(txHash *chainhash.Hash, index uint32) error
 	Write(scalars []*domain.SilentScalar, blockHeight int32) error
-	Delete(txhash *chainhash.Hash) error
-	Update(scalar *domain.SilentScalar) error
 }
