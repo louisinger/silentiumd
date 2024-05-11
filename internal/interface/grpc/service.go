@@ -61,7 +61,9 @@ func NewService(
 	// Creds for grpc gateway reverse proxy.
 	gatewayCreds := insecure.NewCredentials()
 	if !svcConfig.insecure() {
-		gatewayCreds = credentials.NewTLS(tlsConfig)
+		gatewayCreds = credentials.NewTLS(&tls.Config{
+			InsecureSkipVerify: true,
+		})
 	}
 	gatewayOpts := grpc.WithTransportCredentials(gatewayCreds)
 	ctx := context.Background()
