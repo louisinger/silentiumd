@@ -1,15 +1,12 @@
 package grpcservice
 
 import (
-	"crypto/rand"
 	"crypto/tls"
 	"fmt"
 	"net"
-	"time"
 
 	"github.com/louisinger/silentiumd/internal/application"
 	"golang.org/x/crypto/acme/autocert"
-	"golang.org/x/net/http2"
 )
 
 type Config struct {
@@ -42,18 +39,9 @@ func (c Config) gatewayAddress() string {
 }
 
 func (c Config) tlsConfig() (*tls.Config, error) {
-	hostPolicy := autocert.HostWhitelist(c.HostName)
-
 	m := autocert.Manager{
-		Prompt:     autocert.AcceptTOS,
-		HostPolicy: hostPolicy,
+		Prompt: autocert.AcceptTOS,
 	}
 
-	return &tls.Config{
-		Rand:           rand.Reader,
-		Time:           time.Now,
-		NextProtos:     []string{http2.NextProtoTLS, "http/1.1"},
-		MinVersion:     tls.VersionTLS12,
-		GetCertificate: m.GetCertificate,
-	}, nil
+	return m.TLSConfig(), nil
 }
