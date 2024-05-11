@@ -3,7 +3,6 @@ package grpcservice
 import (
 	"crypto/rand"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"net"
 
@@ -14,8 +13,7 @@ import (
 type Config struct {
 	Port       uint32
 	AppService application.SilentiumService
-	TlsKey     string
-	TlsCert    string
+	NoTLS      bool
 }
 
 func (c Config) Validate() error {
@@ -29,7 +27,7 @@ func (c Config) Validate() error {
 }
 
 func (c Config) insecure() bool {
-	return c.TlsKey == "" || c.TlsCert == ""
+	return c.NoTLS
 }
 
 func (c Config) address() string {
@@ -41,23 +39,14 @@ func (c Config) gatewayAddress() string {
 }
 
 func (c Config) tlsConfig() (*tls.Config, error) {
-	if c.TlsKey == "" || c.TlsCert == "" {
-		return nil, errors.New("tls_key and tls_cert both needs to be provided")
-	}
-
-	certificate, err := tls.LoadX509KeyPair(c.TlsCert, c.TlsKey)
-	if err != nil {
-		return nil, err
-	}
-
 	config := &tls.Config{
-		MinVersion:   tls.VersionTLS12,
-		NextProtos:   []string{"http/1.1", http2.NextProtoTLS, "h2-14"}, // h2-14 is just for compatibility. will be eventually removed.
-		Certificates: []tls.Certificate{certificate},
+		MinVersion: tls.VersionTLS12,
+		NextProtos: []string{"http/1.1", http2.NextProtoTLS, "h2-14"}, // h2-14 is just for compatibility. will be eventually removed.
 		CipherSuites: []uint16{
 			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
 			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 		},
+		Rand: rand.Reader,
 	}
 	config.Rand = rand.Reader
 
