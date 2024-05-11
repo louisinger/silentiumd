@@ -26,8 +26,6 @@ func New(
 	baseDir string,
 	logger badger.Logger,
 ) (ports.ScalarRepository, error) {
-	logrus.Warn("using badgerdb, consider using postgresql for production")
-
 	if len(baseDir) > 0 {
 		err := os.Mkdir(baseDir, os.ModePerm)
 		if err != nil && !os.IsExist(err) {

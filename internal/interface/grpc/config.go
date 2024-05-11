@@ -1,12 +1,17 @@
 package grpcservice
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/tls"
 	"fmt"
 	"net"
+	"time"
+
+	"cloud.google.com/go/datastore"
 
 	"github.com/louisinger/silentiumd/internal/application"
+	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/http2"
 )
 
@@ -14,6 +19,7 @@ type Config struct {
 	Port       uint32
 	AppService application.SilentiumService
 	NoTLS      bool
+	HostName   string
 }
 
 func (c Config) Validate() error {
@@ -39,16 +45,25 @@ func (c Config) gatewayAddress() string {
 }
 
 func (c Config) tlsConfig() (*tls.Config, error) {
-	config := &tls.Config{
-		MinVersion: tls.VersionTLS12,
-		NextProtos: []string{"http/1.1", http2.NextProtoTLS, "h2-14"}, // h2-14 is just for compatibility. will be eventually removed.
-		CipherSuites: []uint16{
-			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-		},
-		Rand: rand.Reader,
+	datastoreClient, err := datastore.NewClient(context.Background(), "silentiumd")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create datastore client: %s", err)
 	}
-	config.Rand = rand.Reader
 
-	return config, nil
+	certcache := newDatastoreCertCache(datastoreClient)
+	hostPolicy := autocert.HostWhitelist(c.HostName)
+
+	m := autocert.Manager{
+		Cache:      certcache,
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: hostPolicy,
+	}
+
+	return &tls.Config{
+		Rand:           rand.Reader,
+		Time:           time.Now,
+		NextProtos:     []string{http2.NextProtoTLS, "http/1.1"},
+		MinVersion:     tls.VersionTLS12,
+		GetCertificate: m.GetCertificate,
+	}, nil
 }
