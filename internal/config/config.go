@@ -23,6 +23,8 @@ const (
 	RpcHostKey     = "RPC_HOST"
 	PortKey        = "PORT"
 	NoTLSKey       = "NO_TLS"
+	CertFileKey    = "CERT_FILE"
+	KeyFileKey     = "KEY_FILE"
 
 	// db
 	DbTypeKey        = "DB_TYPE"
@@ -50,6 +52,8 @@ type Config struct {
 	LogLevel      logrus.Level
 	Port          uint32
 	NoTLS         bool
+	CertFileTLS   string
+	KeyFileTLS    string
 
 	DBType        string
 	BadgerDatadir string
@@ -88,6 +92,8 @@ func Load() (*Config, error) {
 		BadgerDatadir: viper.GetString(BadgerDatadirKey),
 		PostgresDSN:   viper.GetString(PostgresDSNKey),
 		NoTLS:         viper.GetBool(NoTLSKey),
+		CertFileTLS:   viper.GetString(CertFileKey),
+		KeyFileTLS:    viper.GetString(KeyFileKey),
 	}
 
 	logrus.SetLevel(cfg.LogLevel)
@@ -100,6 +106,10 @@ func Load() (*Config, error) {
 }
 
 func (c *Config) validate() error {
+	if !c.NoTLS && (c.CertFileTLS == "" || c.KeyFileTLS == "") {
+		return fmt.Errorf("tls cert and key must be set")
+	}
+
 	if c.RpcCookiePath == "" {
 		if c.RpcUser == "" || c.RpcPass == "" {
 			return fmt.Errorf("rpc user and pass or cookie path must be set")
