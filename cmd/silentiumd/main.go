@@ -56,7 +56,8 @@ func main() {
 		grpcservice.Config{
 			Port:       cfg.Port,
 			AppService: silentiumSvc,
-			NoTLS:      cfg.NoTLS,
+			TlsKey:     cfg.TlsKey,
+			TlsCert:    cfg.TlsCert,
 		},
 	)
 	if err != nil {

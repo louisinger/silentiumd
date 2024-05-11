@@ -34,12 +34,20 @@ func NewService(
 	}
 
 	grpcConfig := []grpc.ServerOption{interceptors.UnaryInterceptor()}
-	if !svcConfig.NoTLS {
-		return nil, fmt.Errorf("tls termination not supported yet")
+
+	var tlsConfig *tls.Config
+
+	if !svcConfig.insecure() {
+		var err error
+		tlsConfig, err = svcConfig.tlsConfig()
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	creds := insecure.NewCredentials()
 	if !svcConfig.insecure() {
-		creds = credentials.NewTLS(svcConfig.tlsConfig())
+		creds = credentials.NewTLS(tlsConfig)
 	}
 	grpcConfig = append(grpcConfig, grpc.Creds(creds))
 
@@ -53,9 +61,7 @@ func NewService(
 	// Creds for grpc gateway reverse proxy.
 	gatewayCreds := insecure.NewCredentials()
 	if !svcConfig.insecure() {
-		gatewayCreds = credentials.NewTLS(&tls.Config{
-			InsecureSkipVerify: true, // #nosec
-		})
+		gatewayCreds = credentials.NewTLS(tlsConfig)
 	}
 	gatewayOpts := grpc.WithTransportCredentials(gatewayCreds)
 	ctx := context.Background()
@@ -97,7 +103,7 @@ func NewService(
 	server := &http.Server{
 		Addr:      svcConfig.address(),
 		Handler:   httpServerHandler,
-		TLSConfig: svcConfig.tlsConfig(),
+		TLSConfig: tlsConfig,
 	}
 
 	return &Service{svcConfig, server}, nil

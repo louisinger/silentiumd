@@ -22,7 +22,8 @@ const (
 	RpcPassKey     = "RPC_PASS"
 	RpcHostKey     = "RPC_HOST"
 	PortKey        = "PORT"
-	NoTLSKey       = "NO_TLS"
+	TlsKeyKey      = "TLS_KEY"
+	TlsCertKey     = "TLS_CERT"
 
 	// db
 	DbTypeKey        = "DB_TYPE"
@@ -37,7 +38,6 @@ var (
 	defaultStartHeight = int32(0)
 	defaultRpcHost     = "localhost:8332"
 	defaultPort        = uint32(9000)
-	defaultNoTLS       = true
 )
 
 type Config struct {
@@ -49,7 +49,8 @@ type Config struct {
 	RpcHost       string
 	LogLevel      logrus.Level
 	Port          uint32
-	NoTLS         bool
+	TlsKey        string
+	TlsCert       string
 
 	DBType        string
 	BadgerDatadir string
@@ -67,7 +68,6 @@ func Load() (*Config, error) {
 	viper.SetDefault(NetworkKey, defaultNetwork)
 	viper.SetDefault(RpcHostKey, defaultRpcHost)
 	viper.SetDefault(PortKey, defaultPort)
-	viper.SetDefault(NoTLSKey, defaultNoTLS)
 
 	network := viper.GetString(NetworkKey)
 	chainParams, err := toChainParams(network)
@@ -84,10 +84,11 @@ func Load() (*Config, error) {
 		ChainParams:   chainParams,
 		RpcHost:       viper.GetString(RpcHostKey),
 		Port:          viper.GetUint32(PortKey),
-		NoTLS:         viper.GetBool(NoTLSKey),
 		DBType:        viper.GetString(DbTypeKey),
 		BadgerDatadir: viper.GetString(BadgerDatadirKey),
 		PostgresDSN:   viper.GetString(PostgresDSNKey),
+		TlsKey:        viper.GetString(TlsKeyKey),
+		TlsCert:       viper.GetString(TlsCertKey),
 	}
 
 	logrus.SetLevel(cfg.LogLevel)
