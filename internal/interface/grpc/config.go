@@ -1,14 +1,11 @@
 package grpcservice
 
 import (
-	"context"
 	"crypto/rand"
 	"crypto/tls"
 	"fmt"
 	"net"
 	"time"
-
-	"cloud.google.com/go/datastore"
 
 	"github.com/louisinger/silentiumd/internal/application"
 	"golang.org/x/crypto/acme/autocert"
@@ -45,16 +42,9 @@ func (c Config) gatewayAddress() string {
 }
 
 func (c Config) tlsConfig() (*tls.Config, error) {
-	datastoreClient, err := datastore.NewClient(context.Background(), "silentiumd")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create datastore client: %s", err)
-	}
-
-	certcache := newDatastoreCertCache(datastoreClient)
 	hostPolicy := autocert.HostWhitelist(c.HostName)
 
 	m := autocert.Manager{
-		Cache:      certcache,
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: hostPolicy,
 	}
