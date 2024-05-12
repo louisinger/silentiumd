@@ -39,7 +39,7 @@ scalar = input_hash * sum(inputs_pubkeys)
  ### Requirements
 
  * go 1.21
- * full node with JSON-RPC enabled
+ * bitcoin full node with `txindex=1` and `blockfilterindex=1`
 
 ### Build
 
