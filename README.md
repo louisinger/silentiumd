@@ -49,7 +49,7 @@ scalar = input_hash * sum(inputs_pubkeys)
   "scalars": [
     "03c8c2baa6fafa19644c5f7da1ceb6b5e9c24aa079653457190a1201cd4a2c402c",
     "02bc2b880ceb68cf296aea4089022755356b3b59dca8901b6ccb751caa0cdff6c3",
-    ...,
+    "...",
     "020c8499f1d29e80357abbd66fa8df1314c2acb3d0d9f5c4110d8a97947864ef2e"
   ]
 }
