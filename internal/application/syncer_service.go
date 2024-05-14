@@ -140,7 +140,7 @@ func (s *syncer) syncMissingBlocks() {
 
 	if latestHeight < tipHeight {
 		logrus.Infof("latest block height: %d, tip height: %d", latestHeight, tipHeight)
-		logrus.Infof("syncing %d blocks", tipHeight-latestHeight)
+		logrus.Debugf("syncing %d blocks", tipHeight-latestHeight)
 
 		for i := int32(latestHeight + 1); i <= tipHeight; i++ {
 			block, err := s.chainsource.GetBlockByHeight(i)
@@ -224,7 +224,7 @@ func (s *syncer) computeBlockScalars(block *btcutil.Block) {
 		s.updateUnspentsCh <- block
 	}()
 
-	logrus.Infof("[%d] compute scalars done (%s)", block.Height(), time.Since(t))
+	logrus.Debugf("[%d] compute scalars done (%s)", block.Height(), time.Since(t))
 }
 
 func (s *syncer) updateUnspents(block *btcutil.Block) {
@@ -240,7 +240,7 @@ func (s *syncer) updateUnspents(block *btcutil.Block) {
 			nbOfUpdates++
 		}
 	}
-	logrus.Infof("[%d] update done (%d updated)", block.Height(), nbOfUpdates)
+	logrus.Debugf("[%d] update done (%d updated)", block.Height(), nbOfUpdates)
 }
 
 // isSilentPaymentElligibleTx checks if a transaction is eligible for silent payments.
