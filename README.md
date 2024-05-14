@@ -1,6 +1,6 @@
 # Silentiumd
 
-Silentium minimizes bandwith requirements of Silent Payment [(BIP352)](https://bips.dev/352/) wallets. 
+Silentium minimizes bandwith requirements of Silent Payment [(BIP352)](https://bips.dev/352/) light wallets (like [silentium app](https://github.com/louisinger/silentium)).
 
 Live on mainnet at [bitcoin.silentium.dev](https://bitcoin.silentium.dev/v1/info) thanks to [Vulpem Ventures](https://vulpem.com/).
 
