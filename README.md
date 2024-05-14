@@ -1,12 +1,14 @@
 # Silentiumd
 
-Silentium minimizes bandwith requirements of Silent Payment [(BIP352)](https://github.com/bitcoin/bips/pull/1458) wallets. 
+Silentium minimizes bandwith requirements of Silent Payment [(BIP352)](https://bips.dev/352/) wallets. 
 
-## Silent payment "scalar"
+Live on mainnet at [bitcoin.silentium.dev](https://bitcoin.silentium.dev/v1/info) thanks to [Vulpem Ventures](https://vulpem.com/).
+
+## Overview
 
 ```mermaid
 xychart-beta
-    title "fetch blocks vs. fetch BIP352 scalars"
+    title "fetch blocks vs. fetch scalars"
     x-axis [842538, 842539, 842540, 842541, 842542]
     y-axis "bytes to fetch" 
     line [ 20526, 45210, 74151, 119229, 161898 ]
@@ -34,56 +36,74 @@ scalar = input_hash * sum(inputs_pubkeys)
 
  Thus, a wallet can easily fetch those scalars for each block and compute the corresponding silent payments scripts. Combined with BIP158, the wallet may limit the number of blocks to download.
 
- ## Run Silentium
+## API
+
+### GetBlockScalars 
+
+`GET /v1/block/{height}/scalars`
+
+*returns the list of scalars for each Silent Payment elligible transaction in the block. Scalars are 33-bytes hex-encoded curve point.*
+
+```json
+{
+  "scalars": [
+    "03c8c2baa6fafa19644c5f7da1ceb6b5e9c24aa079653457190a1201cd4a2c402c",
+    "02bc2b880ceb68cf296aea4089022755356b3b59dca8901b6ccb751caa0cdff6c3",
+    ...,
+    "020c8499f1d29e80357abbd66fa8df1314c2acb3d0d9f5c4110d8a97947864ef2e"
+  ]
+}
+```
+
+### GetBlockFilter
+
+`GET /v1/block/{height}/filter`
+
+*given a block height, returns the BIP158 filter.*
+
+### GetChainTipHeight
+
+`GET /v1/chain/tip`
+
+*returns the latest block height with scalars computed.*
+
+ ## Usage
 
  ### Requirements
 
  * go 1.21
  * bitcoin full node with `txindex=1` and `blockfilterindex=1`
 
-### Build
-
-```
-make build
-```
-
 ### Run
 
-#### Config 
-
-Configure you silentium instance using en variables:
-
-- `SILENTIUM_NETWORK`: The network to connect to. This could be `mainnet`, `testnet`, or `regtest`.
-
-- `SILENTIUM_START_HEIGHT`: The block height at which to start syncing from the blockchain.
-
-- `SILENTIUM_RPC_COOKIE_PATH`: The path to the .cookie file for JSON-RPC authentication.
-
-- `SILENTIUM_RPC_USER`: The username for JSON-RPC authentication. Not required if cookie path set.
-
-- `SILENTIUM_RPC_PASS`: The password for JSON-RPC authentication. Not required if cookie path set.
-
-- `SILENTIUM_RPC_HOST`: The host of the JSON-RPC server. 
-
-- `SILENTIUM_PORT`: The port on which the application should run.
-
-- `SILENTIUM_NO_TLS`: If set to `true`, the application will not use TLS for the gRPC server. Otherwise, it will.
-
-- `SILENTIUM_CERT_FILE`: The path to the TLS certificate file.
-
-- `SILENTIUM_KEY_FILE`: The path to the TLS key file.
-
-- `SILENTIUM_DB_TYPE`: The type of database to use. Can be `badger` or `postgres`.
-
-- `SILENTIUM_BADGER_DATADIR`: The directory where BadgerDB should store its data.
-
-- `SILENTIUM_POSTGRES_DSN`: The Data Source Name (DSN) for connecting to a PostgreSQL database.
-
-then run the binary:
+silentium config is set using environment variables. See [config.md](config.md) for more details.
 
 ```
-./build/silentium-[OS]-[ARCH]
+$ make build
+$ ./build/silentium-[OS]-[ARCH]
 ```
+
+## Sponsor
+
+Vulpem Ventures is a research-driven company focused on Bitcoin and privacy technologies. They gracefully sponsor the infrastructure of [bitcoin.silentium.dev](https://bitcoin.silentium.dev/v1/chain/tip).
+
+<a href="https://vulpem.com" target="_blank">
+    <img src="https://vulpem.com/logo_horizontal_100.29bae319.svg" width=200>
+</a>
+
+### Contributing
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+#### Buy me a <s>villa</s> coffee
+
+* `sp1qqf2qnptr9rvk6fp7642gjadszkkk84x0rw4m09yvvcq04h2nrcgmyqh2rf5zm33l66vtr9am753jag0zepry5c33j3gx3nw3m380r3pnaglmylyx`
+
+* `bc1pj6zrvrq6s6d8jg5l4lzxe6z0zxv5vxnflthjkev5u4vxutwa9zxqu4f332`
+
+
+
+
 
 ## License
 
