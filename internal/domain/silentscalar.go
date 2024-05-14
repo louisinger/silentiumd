@@ -60,25 +60,6 @@ func NewSilentScalar(
 	}, nil
 }
 
-func (s *SilentScalar) MarkOutputSpent(index uint32) {
-	for i, out := range s.TaprootOutputs {
-		if out.Index == index {
-			s.TaprootOutputs[i].Spent = true
-			return
-		}
-	}
-}
-
-func (s *SilentScalar) HasUnspentTaproot() bool {
-	for _, out := range s.TaprootOutputs {
-		if !out.Spent {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (s *SilentScalar) ComputeScalar(
 	prevoutGetter func(wire.OutPoint) ([]byte, error),
 ) error {

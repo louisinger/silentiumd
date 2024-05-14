@@ -2,7 +2,6 @@ package application
 
 import (
 	"bytes"
-	"time"
 
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -185,33 +184,28 @@ func (s *syncer) blockWatcher() {
 }
 
 func (s *syncer) computeBlockScalars(block *btcutil.Block) {
-	t := time.Now()
 	txs := block.Transactions()
-	nbOfTxs := len(txs)
 
 	scalars := make([]*domain.SilentScalar, 0)
 
-	for i, tx := range txs {
-		logrus.Debugf("tx %d/%d", i+1, nbOfTxs)
+	for _, tx := range txs {
 		if s.isSilentPaymentElligibleTx(tx) {
 			scalar, err := domain.NewSilentScalar(tx)
 			if err != nil {
 				logrus.Error(err)
-				return
+				continue
 			}
 
 			if scalar == nil {
-				return
+				continue
 			}
 
-			if scalar.HasUnspentTaproot() {
-				if err := scalar.ComputeScalar(s.chainsource.GetPrevoutScript); err != nil {
-					logrus.Error(err)
-					return
-				}
-				if scalar.Scalar != nil {
-					scalars = append(scalars, scalar)
-				}
+			if err := scalar.ComputeScalar(s.chainsource.GetPrevoutScript); err != nil {
+				logrus.Error(err)
+				continue
+			}
+			if scalar.Scalar != nil {
+				scalars = append(scalars, scalar)
 			}
 		}
 	}
@@ -224,7 +218,7 @@ func (s *syncer) computeBlockScalars(block *btcutil.Block) {
 		s.updateUnspentsCh <- block
 	}()
 
-	logrus.Debugf("[%d] compute scalars done (%s)", block.Height(), time.Since(t))
+	logrus.Debugf("[%d] compute scalars done", block.Height())
 }
 
 func (s *syncer) updateUnspents(block *btcutil.Block) {
