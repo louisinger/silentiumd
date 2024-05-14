@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/btcsuite/btcd/wire"
 	"github.com/dgraph-io/badger/v4"
 	"github.com/dgraph-io/badger/v4/options"
 	"github.com/louisinger/silentiumd/internal/domain"
@@ -55,8 +56,18 @@ func (s *scalarRepository) GetScalars(height int32) ([]string, error) {
 	return scalars, nil
 }
 
-func (s *scalarRepository) MarkOutpointSpent(txHash *chainhash.Hash, index uint32) error {
-	silentScalar, err := s.getByTxHash(txHash)
+func (s *scalarRepository) MarkSpent(outpoints []wire.OutPoint) error {
+	for _, outpoint := range outpoints {
+		if err := s.markOutpointSpent(outpoint); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *scalarRepository) markOutpointSpent(outpoint wire.OutPoint) error {
+	silentScalar, err := s.getByTxHash(&outpoint.Hash)
 	if err != nil {
 		return err
 	}
@@ -64,7 +75,7 @@ func (s *scalarRepository) MarkOutpointSpent(txHash *chainhash.Hash, index uint3
 	atLeastOneUnspent := false
 
 	for i, out := range silentScalar.TaprootOutputs {
-		if out.Index == index {
+		if out.Index == outpoint.Index {
 			silentScalar.TaprootOutputs[i].Spent = true
 			continue
 		}
@@ -78,7 +89,7 @@ func (s *scalarRepository) MarkOutpointSpent(txHash *chainhash.Hash, index uint3
 		return s.update(silentScalar)
 	}
 
-	return s.delete(txHash)
+	return s.delete(&outpoint.Hash)
 }
 
 func (s *scalarRepository) delete(txHash *chainhash.Hash) error {

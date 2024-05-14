@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/btcsuite/btcd/wire"
 	"github.com/louisinger/silentiumd/internal/domain"
 	badgerdb "github.com/louisinger/silentiumd/internal/infrastructure/db/badger"
 	"github.com/louisinger/silentiumd/internal/infrastructure/db/postgres"
@@ -91,14 +92,24 @@ func TestGetScalars(t *testing.T) {
 			require.Len(t, scalars, 1)
 			require.Equal(t, hex.EncodeToString([]byte{0x03}), scalars[0])
 
-			err = repo.MarkOutpointSpent(txhash, 0)
+			err = repo.MarkSpent([]wire.OutPoint{
+				{
+					Hash:  *txhash,
+					Index: 0,
+				},
+			})
 			require.NoError(t, err)
 
 			scalars, err = repo.GetScalars(blockHeight)
 			require.NoError(t, err)
 			require.Len(t, scalars, 1)
 
-			err = repo.MarkOutpointSpent(txhash, 1)
+			err = repo.MarkSpent([]wire.OutPoint{
+				{
+					Hash:  *txhash,
+					Index: 1,
+				},
+			})
 			require.NoError(t, err)
 
 			scalars, err = repo.GetScalars(blockHeight)

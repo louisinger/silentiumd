@@ -4,11 +4,17 @@ import (
 	"fmt"
 
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/btcsuite/btcd/wire"
 	"github.com/louisinger/silentiumd/internal/domain"
 )
 
 type ErrScalarNotFound struct {
 	MethodName string
+}
+
+type Outpoint struct {
+	TxHash *chainhash.Hash
+	Index  uint32
 }
 
 func (e ErrScalarNotFound) Error() string {
@@ -18,6 +24,6 @@ func (e ErrScalarNotFound) Error() string {
 type ScalarRepository interface {
 	GetLatestBlockHeight() (int32, error)
 	GetScalars(height int32) ([]string, error)
-	MarkOutpointSpent(txHash *chainhash.Hash, index uint32) error
+	MarkSpent(outpoints []wire.OutPoint) error
 	Write(scalars []*domain.SilentScalar, blockHeight int32) error
 }

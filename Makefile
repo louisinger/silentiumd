@@ -1,4 +1,4 @@
-.PHONY: proto proto-lint
+.PHONY: proto proto-lint test
 
 ## proto: compile proto stubs
 proto: proto-lint
@@ -18,3 +18,7 @@ build:
 build-all:
 	@echo "Building all..."
 	@bash ./scripts/build_all.sh
+
+test:
+	@echo "Testing..."
+	@go test -v ./...

@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/btcsuite/btcd/wire"
 	"github.com/louisinger/silentiumd/internal/domain"
 	"github.com/louisinger/silentiumd/internal/ports"
 	"github.com/uptrace/bun"
@@ -60,14 +60,22 @@ func (r *repository) GetScalars(height int32) ([]string, error) {
 	return scalars, nil
 }
 
-func (r *repository) MarkOutpointSpent(txHash *chainhash.Hash, index uint32) error {
-	// drop taproot output where tx_hash = txHash and index = index
-	_, err := r.db.NewDelete().Model((*TaprootOutputModel)(nil)).
-		Where("tx_hash = ?", txHash.String()).
-		Where("index = ?", index).
-		Exec(context.Background())
+func (r *repository) MarkSpent(outpoints []wire.OutPoint) error {
+	tx, err := r.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return err
+	}
 
-	return err
+	for _, outpoint := range outpoints {
+		if _, err := tx.NewDelete().Model((*TaprootOutputModel)(nil)).
+			Where("tx_hash = ?", outpoint.Hash.String()).
+			Where("index = ?", outpoint.Index).
+			Exec(context.Background()); err != nil {
+			tx.Rollback()
+		}
+	}
+
+	return tx.Commit()
 }
 
 // GetLatestBlockHeight returns the maximum block height value in the scalars table.

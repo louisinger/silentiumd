@@ -222,19 +222,25 @@ func (s *syncer) computeBlockScalars(block *btcutil.Block) {
 }
 
 func (s *syncer) updateUnspents(block *btcutil.Block) {
-	var nbOfUpdates int
+	spentOutpoints := make([]wire.OutPoint, 0)
 
 	for _, tx := range block.Transactions() {
 		for _, input := range tx.MsgTx().TxIn {
-			err := s.store.MarkOutpointSpent(&input.PreviousOutPoint.Hash, input.PreviousOutPoint.Index)
-			if err != nil {
-				logrus.Debug(err)
+			if input.PreviousOutPoint.Hash.IsEqual(zeroHash) {
 				continue
 			}
-			nbOfUpdates++
+
+			spentOutpoints = append(spentOutpoints, input.PreviousOutPoint)
 		}
 	}
-	logrus.Debugf("[%d] update done (%d updated)", block.Height(), nbOfUpdates)
+
+	if len(spentOutpoints) > 0 {
+		if err := s.store.MarkSpent(spentOutpoints); err != nil {
+			logrus.Error(err)
+		}
+	}
+
+	logrus.Debugf("[%d] update done", block.Height())
 }
 
 // isSilentPaymentElligibleTx checks if a transaction is eligible for silent payments.
