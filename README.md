@@ -1,6 +1,6 @@
 # Silentiumd
 
-Silentium minimizes bandwith requirements of Silent Payment [(BIP352)](https://bips.dev/352/) light wallets (like [silentium app](https://github.com/louisinger/silentium)).
+Silentiumd is a public indexer. It stores and serves BIP352 public data.
 
 Live on mainnet at [bitcoin.silentium.dev](https://bitcoin.silentium.dev/v1/info) thanks to [Vulpem Ventures](https://vulpem.com/).
 
@@ -17,7 +17,7 @@ xychart-beta
 
 BIP352 defines silent payments as key-spend taproot script using a tweaked key.
 ```
-silentpay_tapkey = key + tweak
+p2tr_key = spend_sec_key + tweak
 ```
 
 `tweak` is a shared secret computable by the receiver and the sender. As silent payments receiver, you must compute the following for each transactions:
