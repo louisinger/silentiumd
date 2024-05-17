@@ -95,7 +95,7 @@ Vulpem Ventures is a research-driven company focused on Bitcoin and privacy tech
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
-#### Buy me a <s>villa</s> coffee
+#### Buy me a coffee
 
 * `sp1qqf2qnptr9rvk6fp7642gjadszkkk84x0rw4m09yvvcq04h2nrcgmyqh2rf5zm33l66vtr9am753jag0zepry5c33j3gx3nw3m380r3pnaglmylyx`
 
