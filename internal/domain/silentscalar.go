@@ -203,13 +203,13 @@ func extractPublicKeyFromInput(txIn *wire.TxIn, getPrevout func(wire.OutPoint) (
 
 	// P2WPKH
 	if len(txIn.Witness) == 2 {
-		_, err := ecdsa.ParseSignature(txIn.Witness[1])
+		_, err := ecdsa.ParseSignature(txIn.Witness[0])
 		if err == nil {
-			if len(txIn.Witness[0]) != 33 {
+			if len(txIn.Witness[1]) != 33 {
 				return nil, ErrNonStandardScript
 			}
 
-			return btcec.ParsePubKey(txIn.Witness[0])
+			return btcec.ParsePubKey(txIn.Witness[1])
 		}
 	}
 
