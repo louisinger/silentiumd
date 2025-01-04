@@ -47,7 +47,6 @@ func (r *repository) GetScalars(height int32) ([]string, error) {
 		Where("block_height = ?", height).
 		Join("JOIN taproot_outputs AS o").
 		JoinOn("o.tx_hash = s.tx_hash").
-		DistinctOn("scalar").
 		Scan(context.Background(), &dest); err != nil {
 		return nil, err
 	}
